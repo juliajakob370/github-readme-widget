@@ -2,11 +2,11 @@ export async function getGitHubStats(username: string) {
     const query = `
   query($login: String!) {
     user(login: $login) {
-      contributionsCollection { //GitHub groups con tributions(commit,pr) into a calendar view
+      contributionsCollection { # GitHub groups contributions (commit, pr) into a calendar view
         contributionCalendar {
-          weeks { //splits the contributions into weeks
-            contributionDays { //further splits the contributions into days 
-              contributionCount //stores the contributions day by day grouped into weeks
+          weeks { # splits the contributions into weeks
+            contributionDays { # further splits the contributions into days
+              contributionCount # stores the contributions day by day grouped into weeks
             }
           }
         }
