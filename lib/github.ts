@@ -1,44 +1,76 @@
 export async function getGitHubStats(username: string) {
     const query = `
-  query($login: String!) {
-    user(login: $login) {
-      contributionsCollection { # GitHub groups contributions (commit, pr) into a calendar view
-        contributionCalendar {
-          weeks { # splits the contributions into weeks
-            contributionDays { # further splits the contributions into days
-              contributionCount # stores the contributions day by day grouped into weeks
+      query($login: String!) {
+        user(login: $login) {
+          contributionsCollection {
+            contributionCalendar {
+              weeks {
+                contributionDays {
+                  contributionCount
+                }
+              }
             }
           }
         }
       }
-    }
-  }
-  `;
-    const res = await fetch("https://api.github.com/graphql", { //sends a network req to GraphQL endpoint
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`, //reads from .env file
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            query,
-            variables: {
-                login: username,  //this is the data we are sending
+    `;
+
+    // 1. Create a timeout controller to prevent hitting GitHub Camo's 5s limit
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+    try {
+        const token = process.env.GITHUB_TOKEN;
+        if (!token) {
+            console.error("GITHUB_TOKEN is missing in environment variables.");
+            return { currentStreak: 0 };
+        }
+
+        const res = await fetch("https://api.github.com/graphql", {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+                "User-Agent": "GitHub-Profile-Pet-Widget",
             },
-        }),
-    });
-    const json = await res.json();
-    const calendar =
-        json.data.user.contributionsCollection.contributionCalendar;
+            body: JSON.stringify({
+                query,
+                variables: {
+                    login: username,
+                },
+            }),
+            signal: controller.signal,
+        });
 
-    const days = calendar.weeks.flatMap(
-        (week: any) => week.contributionDays
-    );
-    const currentStreak = calculateCurrentStreak(days);
+        clearTimeout(timeoutId);
 
-    return {
-        currentStreak,
-    };
+        if (!res.ok) {
+            console.error(`GitHub API responded with status ${res.status}`);
+            return { currentStreak: 0 };
+        }
+
+        const json = await res.json();
+
+        // 2. Safely check for GraphQL response errors
+        if (json.errors || !json.data?.user) {
+            console.error("GraphQL Query Error:", json.errors || "User not found");
+            return { currentStreak: 0 };
+        }
+
+        const calendar = json.data.user.contributionsCollection.contributionCalendar;
+        const days = calendar.weeks.flatMap((week: any) => week.contributionDays);
+
+        const currentStreak = calculateCurrentStreak(days);
+
+        return {
+            currentStreak,
+        };
+    } catch (error) {
+        clearTimeout(timeoutId);
+        console.error("Failed to fetch GitHub stats:", error);
+        // Fallback to 0 streak on network fail or timeout so the SVG still renders!
+        return { currentStreak: 0 };
+    }
 }
 
 function calculateCurrentStreak(days: any[]) {
@@ -49,24 +81,18 @@ function calculateCurrentStreak(days: any[]) {
 
     let startIndex = 0;
 
-    // here we check if there was a commit activity from the day before bcuz GitHub considers streak alive if day isn’t over yet!
-    if (
-        reversed.length > 0 &&
-        reversed[0].contributionCount === 0
-    ) {
-        startIndex = 1; //start counting streak on day b4 newest day
+    // check if there was commit activity today; if 0, start from yesterday
+    if (reversed.length > 0 && reversed[0].contributionCount === 0) {
+        startIndex = 1;
     }
 
     for (let i = startIndex; i < reversed.length; i++) {
         if (reversed[i].contributionCount > 0) {
-            streak++; //if day has contributions keep checking
+            streak++;
         } else {
-            break; //break the loop if a day has zero contributions
+            break;
         }
     }
 
     return streak;
 }
-
-
-

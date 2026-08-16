@@ -2,6 +2,8 @@ import { getGitHubStats } from "@/lib/github";
 import { getPetState } from "@/lib/pet";
 import { ASSETS } from "@/lib/assets";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
     try {
         const stats = await getGitHubStats("juliajakob370");
