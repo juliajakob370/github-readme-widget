@@ -7,8 +7,8 @@ export async function GET() {
     const pet = getPetState(stats.currentStreak);
     const svg = `
     <svg
-      width="330"
-      height="330"
+      width="400"
+      height="400"
       xmlns="http://www.w3.org/2000/svg"
     >
     <rect
@@ -18,40 +18,42 @@ export async function GET() {
       />
       <image
         href="${pet.asset}" 
-        x="30"
-        y="90"
+        x="150"
+        y="150"
         width="250"
         height="250"
       />
       <image
         href="${ASSETS.box}"
-        x="33"
-        y="20"
-        width="250"
-        height="110"
+        x="10"
+        y="45"
+        width="300"
+        height="160
+      "
       />
       <text
-        x="70"
-        y="70"
-        fill="white"
-        font-size="16"
+        x="60"
+        y="90"
+        fill="#32521D"
+        font-size="25"
         font-weight="bold"
-        font-family="Arial, sans-serif"
+        font-family="Courier, monospace"
+        letter-spacing="1"
       >
-        Commit Streak
+        COMMIT STREAK
       </text>
       <text
-        x="90"
-        y="105"
-        fill="white"
-        font-family="Arial, sans-serif"
+        x="100"
+        y="160"
+        fill="#32521D"
+        font-family="Courier, monospace"
       >
-        <tspan font-size="32" font-weight="bold"> //add in the stat streak text in a span tag
+        <tspan font-size="70" font-weight="bold"> 
           ${stats.currentStreak}
         </tspan>
 
-        <tspan font-size="16" font-weight="bold">
-          Days
+        <tspan font-size="20" font-weight="bold">
+          DAYS
         </tspan>
       </text>
 
