@@ -9,5 +9,5 @@ function toBase64(filePath: string) {
 export const ASSETS = {
     sleepingFrog: toBase64(path.join(process.cwd(), "public/assets/sleeping_frog.png")),
     awakeFrog: toBase64(path.join(process.cwd(), "public/assets/awake_frog.png")),
-    box: toBase64(path.join(process.cwd(), "public/assets/box.png")),
+    box: toBase64(path.join(process.cwd(), "/public/assets/box.png")),
 };
