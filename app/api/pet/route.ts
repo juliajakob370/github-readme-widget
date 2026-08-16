@@ -11,11 +11,7 @@ export async function GET() {
       height="400"
       xmlns="http://www.w3.org/2000/svg"
     >
-    <rect
-        width="100%"
-        height="100%"
-        fill="black" 
-      />
+  
       <image
         href="${pet.asset}" 
         x="150"
